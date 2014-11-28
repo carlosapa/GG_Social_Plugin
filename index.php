@@ -28,6 +28,7 @@ function add_linked_in_metabox () {
 	);
 }
 
+
 /* display meta box */
 function linked_in_box_cb ($object, $box) {
 	wp_nonce_field( basename( __FILE__ ), 'linked_in_box_nonce' );
