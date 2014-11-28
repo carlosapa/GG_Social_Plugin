@@ -31,11 +31,23 @@ function add_linked_in_metabox () {
 /* display meta box */
 function linked_in_box_cb ($object, $box) {
 	wp_nonce_field( basename( __FILE__ ), 'linked_in_box_nonce' );
+	wp_nonce_field( basename( __FILE__ ), 'facebook_in_box_nonce' );
+	wp_nonce_field( basename( __FILE__ ), 'twitter_in_box_nonce' );
 ?>
-	  <p>
+	<p>
 	    <label for="linked_in_box"><?php _e( "Add your LinkedIn's personal site URL.", 'linkedin_plugin' ); ?></label>
 	    <br />
 	    <input class="widefat" type="text" name="linked_in_box" id="linked_in_box" value="<?php echo esc_url(get_post_meta( $object->ID, 'linked_in_box', true )); ?>" size="30" placeholder="your URL here, please..."/>
+  	</p>
+  	<p>
+	    <label for="twitter_in_box"><?php _e( "Add your Twitter's personal site URL.", 'linkedin_plugin' ); ?></label>
+	    <br />
+	    <input class="widefat" type="text" name="twitter_in_box" id="twitter_in_box" value="<?php echo esc_url(get_post_meta( $object->ID, 'twitter_in_box', true )); ?>" size="30" placeholder="your URL here, please..."/>
+  	</p>
+  	<p>
+	    <label for="facebook_in_box"><?php _e( "Add your Facebook's personal site URL.", 'linkedin_plugin' ); ?></label>
+	    <br />
+	    <input class="widefat" type="text" name="facebook_in_box" id="facebook_in_box" value="<?php echo esc_url(get_post_meta( $object->ID, 'facebook_in_box', true )); ?>" size="30" placeholder="your URL here, please..."/>
   	</p>
 <?php
 }
@@ -43,23 +55,29 @@ function linked_in_box_cb ($object, $box) {
 /* save meta box */
 function save_linked_in_metabox ($post_id, $post) {
 
-  if ( !isset( $_POST['linked_in_box_nonce'] ) || !wp_verify_nonce( $_POST['linked_in_box_nonce'], basename( __FILE__ ) ) ) { return $post_id; }
 
-  $post_type = get_post_type_object( $post->post_type );
 
-  if ( !current_user_can( $post_type->cap->edit_post, $post_id ) ) { return $post_id; }
+	$fields_array = array('linked', 'twitter', 'facebook');
+	$post_type = get_post_type_object( $post->post_type );
 
-  $new_meta_value = ( isset( $_POST['linked_in_box'] ) ? $_POST['linked_in_box'] : '' );
-  $meta_key = 'linked_in_box';
-  $meta_value = get_post_meta( $post_id, $meta_key, true );
+	if ( !current_user_can( $post_type->cap->edit_post, $post_id ) ) { return $post_id; }
 
-  if ( $new_meta_value && '' == $meta_value ) {
-    add_post_meta( $post_id, $meta_key, $new_meta_value, true );
-  } elseif ( $new_meta_value && $new_meta_value != $meta_value ) {
-    update_post_meta( $post_id, $meta_key, $new_meta_value );
-  } elseif ( '' == $new_meta_value && $meta_value ) { 
-    delete_post_meta( $post_id, $meta_key, $meta_value );
-  }
+	foreach ($fields_array as $field) {
+		
+		if ( !isset( $_POST[$field . '_box_nonce'] ) || !wp_verify_nonce($field . '_box_nonce', basename( __FILE__ ) ) ) { return $post_id; }
+
+		$new_meta_value = ( isset( $_POST[$field . '_box'] ) ? $_POST[$field . '_box'] : '' );
+		$meta_key = $field . '_box';
+		$meta_value = get_post_meta( $post_id, $meta_key, true );
+
+		if ( $new_meta_value && '' == $meta_value ) {
+			add_post_meta( $post_id, $meta_key, $new_meta_value, true );
+		} elseif ( $new_meta_value && $new_meta_value != $meta_value ) {
+			update_post_meta( $post_id, $meta_key, $new_meta_value );
+		} elseif ( '' == $new_meta_value && $meta_value ) { 
+			delete_post_meta( $post_id, $meta_key, $meta_value );
+		} 	
+	}
 }
 
 /* hook the plugin */
