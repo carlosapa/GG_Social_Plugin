@@ -120,7 +120,6 @@ function the_linkedin_URL_cb () {
         }
         
         restore_current_blog();
-
         return $linkedin_URL_output;
     }
 
