@@ -100,9 +100,9 @@ function linked_in_box_cb ($object, $box) {
 /* save meta box */
 function save_linked_in_metabox ($post_id, $post) {
 
-	if (!current_user_can($post_type->cap->edit_post, $post_id)) { return $post_id; }
+	/*if (!current_user_can($post_type->cap->edit_post, $post_id)) { return $post_id; }
 	if ( !isset($_POST['linked_in_box_nonce']) || !wp_verify_nonce('linked_in_box_nonce' , basename( __FILE__ )) ) 
-		return $post_id;
+		return $post_id;*/
 
 	$field = array('linked', 'twitter', 'xing', 'facebook', 'vcard');
 	$fields_size = sizeof($field);
@@ -137,6 +137,72 @@ add_action( 'load-post.php', 'linked_in_metabox_setup' );
 add_action( 'load-post-new.php', 'linked_in_metabox_setup' );
 
 
+
+/*
+*   CITY STUFF
+*/
+
+/* create meta box */
+function add_city_metabox () {
+	add_meta_box(
+		'city_box', 
+		esc_html__('City', 'linkedin_plugin' ),
+		'city_box_cb',
+		$global_name,
+		'side',
+		'default'
+	);
+}
+
+/* display meta box */
+function city_box_cb ($object, $box) {
+?>
+	<p>
+	    <label for="city_box">
+	    	<?php _e( "Add your city name.", 'linkedin_plugin' ); ?>
+	    </label>
+	    <br />
+	    <input class="widefat" type="text" name="city_box" 
+	    	   id="city_box" value="<?php echo esc_url(get_post_meta( $object->ID, 'city_box', true )); ?>" 
+	    	   size="30" 
+	    	   style="height:35px; margin-top: 4px; border-radius: 2px;"/>
+  	</p>
+
+<?php
+}
+
+/* save meta box */
+function save_city_box ($post_id, $post) {
+
+	$post_type = get_post_type_object( $post->post_type );
+
+	$actual_field   = 'city_box';
+	$new_meta_value = (isset($_POST[$actual_field])) ? $_POST[$actual_field] : '';
+	$meta_key 		= $actual_field;
+	$meta_value 	= get_post_meta($post_id, $meta_key, true);
+
+	if ($new_meta_value && '' == $meta_value) {
+		add_post_meta($post_id, $meta_key, $new_meta_value, true);
+
+	} elseif ($new_meta_value && $new_meta_value != $meta_value) {
+		update_post_meta($post_id, $meta_key, $new_meta_value);
+
+	} elseif ('' == $new_meta_value && $meta_value) { 
+		delete_post_meta($post_id, $meta_key, $meta_value);
+
+	}
+}
+
+/* hook the plugin */
+function city_metabox_setup() {
+  add_action( 'add_meta_boxes', 'add_city_metabox' );
+  add_action( 'save_post', 'save_city_box', 10, 2 );
+}
+add_action( 'load-post.php', 'city_metabox_setup' );
+add_action( 'load-post-new.php', 'city_metabox_setup' );
+
+
+
 /*
 *   DEFINITION OF ACTION TO BE DONE
 */
@@ -153,7 +219,6 @@ function the_linkedin_URL_cb () {
 
      	// check if the url exists
         if (get_post_meta(get_the_id(), $key, true ) !== '') {
-
         	$URL_output = get_post_meta(get_the_id(), $key, true );
 
         } else {
@@ -215,7 +280,14 @@ function the_linkedin_URL_cb () {
 	        }
     	}
 
-    	?><!--<pre><?php //print_r($URL); ?></pre>--><?php
+    	?><pre><?php print_r($URL); ?></pre><?php
+    }
+
+    function the_city () {
+    	$city = get_post_meta(get_the_id(), 'city_box', true);
+    	if ($city !== '') {
+    		echo $city;
+    	}
     }
 }
 
