@@ -396,6 +396,16 @@ add_action( 'load-post.php', 'city_metabox_setup' );
 add_action( 'load-post-new.php', 'city_metabox_setup' );
 
 
+// Add Shortcode
+function print_city_shortcode () {
+	global $post;
+	$city = get_post_meta(get_the_id(), 'city_box', true);
+	if ($city !== '') {
+    	return $city;
+    }
+}
+add_shortcode( 'print_city', 'print_city_shortcode' );
+
 
 /*
 *   DEFINITION OF ACTION TO BE DONE
