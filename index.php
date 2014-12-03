@@ -12,6 +12,93 @@
 
 $global_name = 'Portfolio';
 
+
+/*
+*	LANGUAGE STUFF
+*
+*	Function to know in which languages, there's a filled field
+*/
+
+function check_other_languages ($string_in) {
+		$orig_bid = get_current_blog_id();
+		$id = (get_the_ID() == '') ? $_GET['post'] : get_the_ID();
+		$post_slug = get_the_title($id);  
+		$key = $string_in . '_in_box';     
+        $bids = array(1, 2, 3, 4, 5, 6);
+        $bids_languages = array('DE', 'RU', 'ES', 'EN', 'FR', 'PL'); 
+        $bids_base = array(
+        	'',
+        	'ruso',
+        	'abogados-berlin',
+        	'lawyers-berlin',
+        	'avocats-berlin',
+        	'adwokaty-berlin'
+		);
+		$url_base = get_settings('siteurl');
+
+        $languages_array = array();
+        $languages_array_pointer = 0;
+        $languages_converted = array();
+		$languages_converted_pointer = 0;
+		
+		$languages_href = array();
+        $languages_href_pointer = 0;
+
+		foreach ($bids as $bid) {
+			
+			switch_to_blog($bid);
+			$args = array('post_type' => 'portfolio', 'meta_key' => $key);
+			$query = new WP_Query( $args );
+			$size = sizeof($query->posts);
+    		
+
+			for ($j = 0; $j < $size; $j++) {
+				$title = $query->posts[$j]->post_title;
+				if ($title == $post_slug) {
+					if (get_post_meta( $query->posts[$j]->ID, $key, true ) !== '') {
+						
+						$languages_array[$languages_array_pointer] = $bid;
+						
+						$languages_href[$languages_href_pointer] = $url_base;
+						$languages_href[$languages_href_pointer] .= ($bids_base[$bid-1] !== '') ? '/' : '';
+						$languages_href[$languages_href_pointer] .= $bids_base[$bid-1];
+						$languages_href[$languages_href_pointer] .= '/wp-admin/post.php?post=';
+						$languages_href[$languages_href_pointer] .= $query->posts[$j]->ID;
+						$languages_href[$languages_href_pointer] .= '&action=edit';
+
+						$languages_array_pointer++;
+						$languages_href_pointer++;
+					}
+				}
+			}
+
+			wp_reset_query();
+        }
+
+        switch_to_blog($orig_bid);
+
+        /*//we suppose that RU will be always filled.
+        $languages_array[$languages_array_pointer] = 2;
+        sort($languages_array);*/
+
+        // we convert numbers to codes...
+        foreach ($languages_array as $language) {
+        	$language = $language-1;
+        	$languages_converted[$languages_converted_pointer] = $bids_languages[$language];
+        	$languages_converted_pointer++;
+        }
+
+        add_russian();
+
+      	return array($languages_converted, $languages_href);    
+}
+
+function add_russian () {
+	echo $languages_href[1];
+}
+
+
+
 /*
 *   METABOX STUFF
 */
@@ -35,9 +122,23 @@ function linked_in_box_cb ($object, $box) {
 
 	<p>
 	    <label for="linked_in_box">
-	    	<img src="<?php echo plugin_dir_url(__FILE__); ?>img/linked_in-tiny.png"
-	    		 style="margin: 2px 4px -2px 0;" />
-	    	<?php _e( "Add your LinkedIn's personal site URL.", 'linkedin_plugin' ); ?>
+	    	<div style="float:left; width: 60%">
+		    	<img src="<?php echo plugin_dir_url(__FILE__); ?>img/linked_in-tiny.png"
+		    		 style="margin: 2px 4px -2px 0;" />
+		    	<?php _e( "Add your LinkedIn's personal site URL.", 'linkedin_plugin' ); ?>
+			</div>
+			<div style="float:right; width: 40%; text-align: right">
+				<?php 
+				$langs = check_other_languages('linked');
+				for ($i = 0; $i < sizeof($langs); $i++) : 
+				?>
+	    		<span class="other_languages">
+	    			<a href="<?php echo $langs[1][$i]?>" target="_blank">
+		    			<?php echo $langs[0][$i]?>
+		    		</a>
+	    		</span>
+	    		<?php endfor; ?>
+	    	</div>
 	    </label>
 	    <br />
 	    <input class="widefat" type="text" name="linked_in_box" 
@@ -47,9 +148,22 @@ function linked_in_box_cb ($object, $box) {
   	</p>
   	<p>
 	    <label for="twitter_in_box">
-	    	<img src="<?php echo plugin_dir_url(__FILE__); ?>img/twitter_in-tiny.png"
-	    		 style="margin: 2px 4px -2px 0;" />
-	    	<?php _e( "Add your Twitter's personal site URL.", 'linkedin_plugin' ); ?>
+	    	<div style="float:left; width: 60%">
+		    	<img src="<?php echo plugin_dir_url(__FILE__); ?>img/twitter_in-tiny.png"
+		    		 style="margin: 2px 4px -2px 0;" />
+		    	<?php _e( "Add your Twitter's personal site URL.", 'linkedin_plugin' ); ?>
+	    	</div>
+			<div style="float:right; width: 40%; text-align: right">
+				<?php 
+				$langs = check_other_languages('twitter');
+				for ($i = 0; $i < sizeof($langs); $i++) : 
+				?>
+	    		<span class="other_languages">	    			
+	    			<a href="<?php echo $langs[1][$i]?>" target="_blank">
+		    			<?php echo $langs[0][$i]?>
+		    		</a></span>
+	    		<?php endfor; ?>
+	    	</div>
 		</label>
 	    <br />
 	    <input class="widefat" type="text" name="twitter_in_box" 
@@ -59,9 +173,22 @@ function linked_in_box_cb ($object, $box) {
   	</p>
   	<p>
 	    <label for="xing_in_box">
-	    	<img src="<?php echo plugin_dir_url(__FILE__); ?>img/xing_in-tiny.png"
-	    		 style="margin: 2px 4px -2px 0;" />
-	    	<?php _e( "Add your Xing's personal site URL.", 'linkedin_plugin' ); ?>
+	    	<div style="float:left; width: 60%">
+		    	<img src="<?php echo plugin_dir_url(__FILE__); ?>img/xing_in-tiny.png"
+		    		 style="margin: 2px 4px -2px 0;" />
+		    	<?php _e( "Add your Xing's personal site URL.", 'linkedin_plugin' ); ?>
+	    	</div>
+			<div style="float:right; width: 40%; text-align: right">
+	    		<?php 
+				$langs = check_other_languages('xing');
+				for ($i = 0; $i < sizeof($langs); $i++) : 
+				?>
+	    		<span class="other_languages">	    			
+	    			<a href="<?php echo $langs[1][$i]?>" target="_blank">
+		    			<?php echo $langs[0][$i]?>
+		    		</a></span>
+	    		<?php endfor; ?>
+	    	</div>
 		</label>
 	    <br />
 	    <input class="widefat" type="text" name="xing_in_box" 
@@ -71,9 +198,22 @@ function linked_in_box_cb ($object, $box) {
   	</p>
   	<p>
 	    <label for="facebook_in_box">
+	    	<div style="float:left; width: 60%">
 	    	<img src="<?php echo plugin_dir_url(__FILE__); ?>img/facebook_in-tiny.png"
 	    		 style="margin: 2px 4px -2px 0;" />
 	    	<?php _e( "Add your Facebook's personal site URL.", 'linkedin_plugin' ); ?>
+	    	</div>
+			<div style="float:right; width: 40%; text-align: right">
+	    		<?php 
+				$langs = check_other_languages('facebook');
+				for ($i = 0; $i < sizeof($langs); $i++) : 
+				?>
+	    		<span class="other_languages">	    			
+	    			<a href="<?php echo $langs[1][$i]?>" target="_blank">
+		    			<?php echo $langs[0][$i]?>
+		    		</a></span>
+	    		<?php endfor; ?>
+	    	</div>
 		</label>
 	    <br />
 	    <input class="widefat" type="text" name="facebook_in_box" 
@@ -83,9 +223,22 @@ function linked_in_box_cb ($object, $box) {
   	</p>
   	<p>
 	    <label for="vcard_in_box">
-	    	<img src="<?php echo plugin_dir_url(__FILE__); ?>img/vcard_in-tiny.png"
-	    		 style="margin: 2px 4px -2px 0;" />
-	    	<?php _e( "Add your VCard URL.", 'linkedin_plugin' ); ?>
+	    	<div style="float:left; width: 60%">
+		    	<img src="<?php echo plugin_dir_url(__FILE__); ?>img/vcard_in-tiny.png"
+		    		 style="margin: 2px 4px -2px 0;" />
+		    	<?php _e( "Add your VCard URL.", 'linkedin_plugin' ); ?>
+	    	</div>
+			<div style="float:right; width: 40%; text-align: right">
+	    		<?php 
+				$langs = check_other_languages('vcard');
+				for ($i = 0; $i < sizeof($langs); $i++) : 
+				?>
+	    		<span class="other_languages">	    			
+	    			<a href="<?php echo $langs[1][$i]?>" target="_blank">
+		    			<?php echo $langs[0][$i]?>
+		    		</a></span>
+	    		<?php endfor; ?>
+	    	</div>
 		</label>
 	    <br />
 	    <input class="widefat" type="text" name="vcard_in_box" 
@@ -130,8 +283,8 @@ function save_linked_in_metabox ($post_id, $post) {
 
 /* hook the plugin */
 function linked_in_metabox_setup() {
-  add_action( 'add_meta_boxes', 'add_linked_in_metabox' );
-  add_action( 'save_post', 'save_linked_in_metabox', 10, 2 );
+	add_action( 'add_meta_boxes', 'add_linked_in_metabox' );
+	add_action( 'save_post', 'save_linked_in_metabox', 10, 2 );
 }
 add_action( 'load-post.php', 'linked_in_metabox_setup' );
 add_action( 'load-post-new.php', 'linked_in_metabox_setup' );
@@ -163,7 +316,7 @@ function city_box_cb ($object, $box) {
 	    </label>
 	    <br />
 	    <input class="widefat" type="text" name="city_box" 
-	    	   id="city_box" value="<?php echo esc_url(get_post_meta( $object->ID, 'city_box', true )); ?>" 
+	    	   id="city_box" value="<?php echo get_post_meta( $object->ID, 'city_box', true ); ?>" 
 	    	   size="30" 
 	    	   style="height:35px; margin-top: 4px; border-radius: 2px;"/>
   	</p>
@@ -195,8 +348,8 @@ function save_city_box ($post_id, $post) {
 
 /* hook the plugin */
 function city_metabox_setup() {
-  add_action( 'add_meta_boxes', 'add_city_metabox' );
-  add_action( 'save_post', 'save_city_box', 10, 2 );
+	add_action( 'add_meta_boxes', 'add_city_metabox' );
+	add_action( 'save_post', 'save_city_box', 10, 2 );
 }
 add_action( 'load-post.php', 'city_metabox_setup' );
 add_action( 'load-post-new.php', 'city_metabox_setup' );
@@ -210,9 +363,8 @@ add_action( 'load-post-new.php', 'city_metabox_setup' );
 function the_linkedin_URL_cb () {
 
     function find_the_URL ($string_in) {
-        
-        $orig_bid = get_current_blog_id();
-        $post_slug = get_the_title(get_the_id());
+		$orig_bid = get_current_blog_id();
+		$post_slug = get_the_title(get_the_ID());       
         $bids = array(1, 2, 3, 4, 5, 6);
         $URL_output = '';
         $key = $string_in . '_in_box';
@@ -222,7 +374,6 @@ function the_linkedin_URL_cb () {
         	$URL_output = get_post_meta(get_the_id(), $key, true );
 
         } else {
-
 	        foreach ($bids as $bid) {
 				switch_to_blog($bid);
 				$args = array('post_type' => 'portfolio', 'meta_key' => $key);
@@ -231,15 +382,18 @@ function the_linkedin_URL_cb () {
 
 				for ($j = 0; $j < $size; $j++) {
 					$title = $query->posts[$j]->post_title;
+					//echo '<br/>' . 'Title: ' . $title;
 					if ($title == $post_slug) {
-						$URL_output = get_post_meta( $query->posts[$j]->ID, $key, true );
+						if (get_post_meta( $query->posts[$j]->ID, $key, true ) !== '') {
+							$URL_output = get_post_meta( $query->posts[$j]->ID, $key, true );
+						}
 					}
 				}
 
 				wp_reset_query();
 	        }
 
-	        restore_current_blog();
+	        switch_to_blog($orig_bid);
         }
 
         return $URL_output;
@@ -279,8 +433,6 @@ function the_linkedin_URL_cb () {
 	            echo $string_output;
 	        }
     	}
-
-    	?><pre><?php print_r($URL); ?></pre><?php
     }
 
     function the_city () {
