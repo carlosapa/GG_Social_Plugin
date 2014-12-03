@@ -11,7 +11,23 @@
 
 
 $global_name = 'Portfolio';
+$names_translation_into_russian = array(
 
+	'Alexander Eckert' 					=> 'Alexander Eckert',
+	'Álvaro Balbás Terceño' 			=> 'Альваро Бальбас Терсеньо',
+	'Begoña de la Marta Zapata, LL.M' 	=> 'Бегонья де ла Марта Запата, LL.M.',
+	'Caroline Ingrid Schmidt' 			=> 'Каролина Ингрид Шмидт',
+	'Catalina Garay y Chamizo, LL.M.' 	=> 'Каталина Гарай и Чамизо, LL.M.',
+	'Javier Blanco Barberá' 			=> 'Javier Blanco Barberá',
+	'Karen Schadwill' 					=> 'Карeн Шадвиль',
+	'Marcus Gülpen'  					=> 'Маркус В. Гюльпэн',
+	'Maria Herzog' 						=> 'Мария Герцог',
+	'Olaf H. Herzog, LL.M.' 			=> 'Олаф Герцог, LL.M',
+	'Tobias Blüming' 					=> 'Тобиас Блюминг',
+	'Ulrike Hartmann' 					=> 'Ульрике Хартман'
+);
+
+$names_translation_into_latin = array_flip($names_translation_into_russian);
 
 /*
 *	LANGUAGE STUFF
@@ -20,6 +36,9 @@ $global_name = 'Portfolio';
 */
 
 function check_other_languages ($string_in) {
+
+		global $names_translation_into_russian, $names_translation_into_latin;
+
 		$orig_bid = get_current_blog_id();
 		$id = (get_the_ID() == '') ? $_GET['post'] : get_the_ID();
 		$post_slug = get_the_title($id);  
@@ -28,13 +47,13 @@ function check_other_languages ($string_in) {
         $bids_languages = array('DE', 'RU', 'ES', 'EN', 'FR', 'PL'); 
         $bids_base = array(
         	'',
-        	'ruso',
-        	'abogados-berlin',
-        	'lawyers-berlin',
-        	'avocats-berlin',
-        	'adwokaty-berlin'
+        	'/ruso',
+        	'/abogados-berlin',
+        	'/lawyers-berlin',
+        	'/avocats-berlin',
+        	'/adwokaty-berlin'
 		);
-		$url_base = get_settings('siteurl');
+		$url_base = 'http://guelpen-garay.com';
 
         $languages_array = array();
         $languages_array_pointer = 0;
@@ -44,59 +63,81 @@ function check_other_languages ($string_in) {
 		$languages_href = array();
         $languages_href_pointer = 0;
 
-		foreach ($bids as $bid) {
-			
+		for ($i = 0; $i < sizeof($bids); $i++) {
+			$bid = $bids[$i];
 			switch_to_blog($bid);
+
 			$args = array('post_type' => 'portfolio', 'meta_key' => $key);
 			$query = new WP_Query( $args );
+			
 			$size = sizeof($query->posts);
-    		
 
+						
+    	
 			for ($j = 0; $j < $size; $j++) {
-				$title = $query->posts[$j]->post_title;
-				if ($title == $post_slug) {
-					if (get_post_meta( $query->posts[$j]->ID, $key, true ) !== '') {
+				
+				$post_title = $query->posts[$j]->post_title;
+					
+				if ($orig_bid === 2) {
+					if ($bids[$i] === 2) {
+						$title = $post_title;
+					} else {
+						$title = $names_translation_into_russian[$post_title];
+					}
+				} else {
+					if ($bids[$i] === 2) {
+						$title = $names_translation_into_latin[$post_title];
+					} else {
+						$title = $post_title;
+					}
+				}
+				
+				if ($title === $post_slug) {
+					
+					//if (get_post_meta( $query->posts[$j]->ID, $key, true ) !== '') {
 						
-						$languages_array[$languages_array_pointer] = $bid;
+						$languages_array[$languages_array_pointer] = $bids[$i];
 						
+
 						$languages_href[$languages_href_pointer] = $url_base;
-						$languages_href[$languages_href_pointer] .= ($bids_base[$bid-1] !== '') ? '/' : '';
-						$languages_href[$languages_href_pointer] .= $bids_base[$bid-1];
+						$languages_href[$languages_href_pointer] .= $bids_base[$bids[$i-1]];
 						$languages_href[$languages_href_pointer] .= '/wp-admin/post.php?post=';
 						$languages_href[$languages_href_pointer] .= $query->posts[$j]->ID;
 						$languages_href[$languages_href_pointer] .= '&action=edit';
 
 						$languages_array_pointer++;
 						$languages_href_pointer++;
-					}
+					//}
 				}
-			}
 
+			}
+			
 			wp_reset_query();
         }
-
         switch_to_blog($orig_bid);
 
-        /*//we suppose that RU will be always filled.
-        $languages_array[$languages_array_pointer] = 2;
-        sort($languages_array);*/
+
+        //we suppose that RU will be always filled.
+        //$languages_array[$languages_array_pointer] = 2;
+        //sort($languages_array);
 
         // we convert numbers to codes...
-        foreach ($languages_array as $language) {
-        	$language = $language-1;
-        	$languages_converted[$languages_converted_pointer] = $bids_languages[$language];
+        for ($k = 0; $k < sizeof($languages_array); $k++) {
+        	$lang_id = $languages_array[$k];
+        	$languages_converted[$languages_converted_pointer] = $bids_languages[$lang_id-1];
         	$languages_converted_pointer++;
+
         }
 
-        add_russian();
-
+        
       	return array($languages_converted, $languages_href);    
 }
 
-function add_russian () {
-	echo $languages_href[1];
+function check_other_languages_cb ($string_in) {
+
 }
 
+add_action( 'load-post.php', 'check_other_languages_cb' );
 
 
 /*
@@ -130,7 +171,7 @@ function linked_in_box_cb ($object, $box) {
 			<div style="float:right; width: 40%; text-align: right">
 				<?php 
 				$langs = check_other_languages('linked');
-				for ($i = 0; $i < sizeof($langs); $i++) : 
+				for ($i = 0; $i < sizeof($langs[0]); $i++) : 
 				?>
 	    		<span class="other_languages">
 	    			<a href="<?php echo $langs[1][$i]?>" target="_blank">
@@ -363,6 +404,8 @@ add_action( 'load-post-new.php', 'city_metabox_setup' );
 function the_linkedin_URL_cb () {
 
     function find_the_URL ($string_in) {
+    	global $names_translation_into_russian, $names_translation_into_latin;
+
 		$orig_bid = get_current_blog_id();
 		$post_slug = get_the_title(get_the_ID());       
         $bids = array(1, 2, 3, 4, 5, 6);
@@ -381,8 +424,25 @@ function the_linkedin_URL_cb () {
 				$size = sizeof($query->posts);
 
 				for ($j = 0; $j < $size; $j++) {
-					$title = $query->posts[$j]->post_title;
-					//echo '<br/>' . 'Title: ' . $title;
+
+					$post_title = $query->posts[$j]->post_title;
+					
+					// comparar con ruso	
+					if ($orig_bid === 2) {
+						if ($bids[$i] === 2) {
+							$title = $post_title;
+						} else {
+							$title = $names_translation_into_russian[$post_title];
+						}
+					} else {
+						if ($bids[$i] === 2) {
+							$title = $names_translation_into_latin[$post_title];
+						} else {
+							$title = $post_title;
+						}
+					}
+
+					// comparar título
 					if ($title == $post_slug) {
 						if (get_post_meta( $query->posts[$j]->ID, $key, true ) !== '') {
 							$URL_output = get_post_meta( $query->posts[$j]->ID, $key, true );
