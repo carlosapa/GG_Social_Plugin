@@ -399,12 +399,32 @@ add_action( 'load-post-new.php', 'city_metabox_setup' );
 // Add Shortcode
 function print_city_shortcode () {
 	global $post;
+
+	$bid = get_current_blog_id();
+	$pob = array(
+		'Geboren in', 
+		'Pодился в',
+		'Nacido/a en', 
+		'Born in', 
+		'Né à',
+		'Urodzony w'
+	);
+
 	$city = get_post_meta(get_the_id(), 'city_box', true);
 	if ($city !== '') {
-    	return $city;
+    	return '<p class="content_city">' . $pob[$bid - 1] . ' ' . $city . '.</p>';
     }
 }
 add_shortcode( 'print_city', 'print_city_shortcode' );
+
+function print_title_shortcode () {
+	global $post;
+	$title = get_the_title();
+	if ($title !== '') {
+    	return '<h4 class="content_title">' . $title . '</h4>';
+    }
+}
+add_shortcode( 'print_title', 'print_title_shortcode' );
 
 
 /*
@@ -497,9 +517,7 @@ function the_linkedin_URL_cb () {
 
     		if ($URL[$i] !== '') {
 	            $string_output = '
-	              <a href="' . $URL[$i] . '" title="linked_in_URL" target="_blank">
-	                <img src="' . plugin_dir_url(__FILE__) . '/img/logo_cards-' . $social_media[$i] . '.png"/>
-	              </a>';
+	              <img src="' . plugin_dir_url(__FILE__) . '/img/logo_cards-' . $social_media[$i] . '.png"/>';
 	            echo $string_output;
 	        }
     	}
