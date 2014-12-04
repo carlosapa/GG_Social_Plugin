@@ -511,16 +511,23 @@ function the_linkedin_URL_cb () {
     	$social_media_length = sizeof($social_media);
     	$URL = array();
 
+    	echo '<div class="social_block">';
     	for ($i = 0; $i < $social_media_length; $i++) {
     		
     		$URL[$i] = find_the_URL($social_media[$i]);
 
     		if ($URL[$i] !== '') {
+    			echo '<div class="social_block_item ' . $social_media[$i] . '">';
 	            $string_output = '
-	              <img src="' . plugin_dir_url(__FILE__) . '/img/logo_cards-' . $social_media[$i] . '.png"/>';
+					<a href="' . $URL[$i] . '" title="linked_in_URL" target="_blank">
+					<img src="' . plugin_dir_url(__FILE__) . '/img/logo_cards-' . $social_media[$i] . '.png"/>
+					</a>';
 	            echo $string_output;
+	            echo '</div>';
 	        }
     	}
+    	echo '</div>';
+
     }
 
     function the_city () {
